@@ -21,6 +21,7 @@ func init() {
 
 func main() {
 	serviceName := viper.GetString("order.service-name")
+	//logrus.Print("serviceName: ", serviceName)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -30,6 +31,7 @@ func main() {
 		svc := ports.NewGRPCServer(application)
 		orderpb.RegisterOrderServiceServer(server, svc)
 	})
+
 	server.RunHTTPServer(serviceName, func(router *gin.Engine) {
 		ports.RegisterHandlersWithOptions(router, HTTPServer{
 			app: application,

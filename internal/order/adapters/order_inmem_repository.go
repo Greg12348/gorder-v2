@@ -4,7 +4,9 @@ import (
 	domain "github.com/Greg12348/gorder-v2/order/domain/order"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+	"strconv"
 	"sync"
+	"time"
 )
 
 type MemoryOrderRepository struct {
@@ -13,21 +15,29 @@ type MemoryOrderRepository struct {
 }
 
 func NewMemoryOrderRepository() *MemoryOrderRepository {
+	s := make([]*domain.Order, 0)
+	s = append(s, &domain.Order{
+		ID:          "fake-ID",
+		CustomerID:  "fake-Customer-id",
+		Status:      "fake-status",
+		PaymentLink: "fake-payment-link",
+		Items:       nil,
+	})
 	return &MemoryOrderRepository{
 		lock:  &sync.RWMutex{},
-		store: make([]*domain.Order, 0),
+		store: s,
 	}
 }
 
-func (m MemoryOrderRepository) Create(_ context.Context, order *domain.Order) (*domain.Order, error) {
+func (m *MemoryOrderRepository) Create(_ context.Context, order *domain.Order) (*domain.Order, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	newOrder := &domain.Order{
-		ID:          "",
-		CustomerID:  "",
-		Status:      "",
-		PaymentLink: "",
-		Items:       nil,
+		ID:          strconv.FormatInt(time.Now().Unix(), 10),
+		CustomerID:  order.CustomerID,
+		Status:      order.Status,
+		PaymentLink: order.PaymentLink,
+		Items:       order.Items,
 	}
 	m.store = append(m.store, newOrder)
 	logrus.WithFields(logrus.Fields{
@@ -37,11 +47,14 @@ func (m MemoryOrderRepository) Create(_ context.Context, order *domain.Order) (*
 	return newOrder, nil
 }
 
-func (m MemoryOrderRepository) Get(_ context.Context, id, customerID string) (*domain.Order, error) {
+func (m *MemoryOrderRepository) Get(_ context.Context, id, customerID string) (*domain.Order, error) {
+	logrus.Infof("store: %v", m.store)
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	for _, o := range m.store {
-		if o.ID == customerID {
+		logrus.Infof("o.ID %v", o.ID)
+		logrus.Infof("customerID %v", id)
+		if o.ID == id && o.CustomerID == customerID {
 			logrus.Debug("memory_order_repo_get || found || id=%s || res=%+v", id, customerID, *o)
 			return o, nil
 		}
@@ -49,7 +62,7 @@ func (m MemoryOrderRepository) Get(_ context.Context, id, customerID string) (*d
 	return nil, domain.NotFoundError{OrderID: id}
 }
 
-func (m MemoryOrderRepository) update(ctx context.Context, order *domain.Order, updateFn func(context.Context, *domain.Order) (*domain.Order, error)) error {
+func (m *MemoryOrderRepository) Update(ctx context.Context, order *domain.Order, updateFn func(context.Context, *domain.Order) (*domain.Order, error)) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	found := false
