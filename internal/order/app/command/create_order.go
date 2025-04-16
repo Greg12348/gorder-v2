@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"github.com/Greg12348/gorder-v2/common/decorator"
 	"github.com/Greg12348/gorder-v2/common/genproto/orderpb"
 	"github.com/Greg12348/gorder-v2/order/app/query"
@@ -42,21 +43,43 @@ func NewCreateOrderHandler(
 }
 
 func (c createOrderHandler) Handle(ctx context.Context, cmd CreateOrder) (*CreateOrderResult, error) {
-	err := c.stockGRPC.CheckIfItemsInStock(ctx, cmd.Items)
-	logrus.Info("createOrderHandler||err from stockGRPC", err)
-	var stockResponse []*orderpb.Item
-	for _, item := range cmd.Items {
-		stockResponse = append(stockResponse, &orderpb.Item{
-			ID:       item.ID,
-			Quantity: item.Quantity,
-		})
+	validItems, err := c.validate(ctx, cmd.Items)
+	if err != nil {
+		return nil, err
 	}
 	o, err := c.orderRepo.Create(ctx, &domain.Order{
 		CustomerID: cmd.CustomerID,
-		Items:      stockResponse,
+		Items:      validItems,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &CreateOrderResult{OrderID: o.ID}, nil
+}
+
+func (c createOrderHandler) validate(ctx context.Context, items []*orderpb.ItemWithQuantity) ([]*orderpb.Item, error) {
+	if len(items) == 0 {
+		return nil, errors.New("empty item list")
+	}
+	items = packItems(items)
+	resp, err := c.stockGRPC.CheckIfItemsInStock(ctx, items)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Items, nil
+}
+
+func packItems(items []*orderpb.ItemWithQuantity) []*orderpb.ItemWithQuantity {
+	merged := make(map[string]int32)
+	for _, item := range items {
+		merged[item.ID] += item.Quantity
+	}
+	var res []*orderpb.ItemWithQuantity
+	for id, quantity := range merged {
+		res = append(res, &orderpb.ItemWithQuantity{
+			ID:       id,
+			Quantity: quantity,
+		})
+	}
+	return res
 }
