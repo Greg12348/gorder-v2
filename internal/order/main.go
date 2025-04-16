@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/Greg12348/gorder-v2/common/config"
 	"github.com/Greg12348/gorder-v2/common/genproto/orderpb"
 	"github.com/Greg12348/gorder-v2/common/server"
@@ -9,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -21,12 +21,11 @@ func init() {
 
 func main() {
 	serviceName := viper.GetString("order.service-name")
-	//logrus.Print("serviceName: ", serviceName)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	application := service.NewApplication(ctx)
+	application, cleanup := service.NewApplication(ctx)
+	defer cleanup()
 	go server.RunGRPCServer(serviceName, func(server *grpc.Server) {
 		svc := ports.NewGRPCServer(application)
 		orderpb.RegisterOrderServiceServer(server, svc)

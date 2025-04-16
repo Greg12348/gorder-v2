@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/Greg12348/gorder-v2/common/config"
 	"github.com/Greg12348/gorder-v2/common/genproto/stockpb"
 	"github.com/Greg12348/gorder-v2/common/server"
@@ -8,7 +9,6 @@ import (
 	"github.com/Greg12348/gorder-v2/stock/service"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

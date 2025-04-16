@@ -1,0 +1,100 @@
+.
+├── Makefile
+├── api
+│   ├── README.md
+│   ├── openapi
+│   │   └── order.yml
+│   ├── orderpb
+│   │   └── order.proto
+│   └── stockpb
+│       └── stock.proto
+├── internal
+│   ├── common
+│   │   ├── client
+│   │   │   ├── order
+│   │   │   │   ├── openapi_client_gen.go
+│   │   │   │   └── openapi_types.gen.go
+│   │   │   └── ormaederports
+│   │   ├── config
+│   │   │   ├── global.yaml
+│   │   │   └── viper.go
+│   │   ├── decorator
+│   │   │   ├── command.go
+│   │   │   ├── logging.go
+│   │   │   ├── metrics.go
+│   │   │   └── query.go
+│   │   ├── genproto
+│   │   │   ├── orderpb
+│   │   │   │   ├── order.pb.go
+│   │   │   │   └── order_grpc.pb.go
+│   │   │   └── stockpb
+│   │   │       ├── stock.pb.go
+│   │   │       └── stock_grpc.pb.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── metrics
+│   │   │   └── todo_metrics.go
+│   │   └── server
+│   │       ├── grpc.go
+│   │       └── http.go
+│   ├── kitchen
+│   │   └── go.mod
+│   ├── order
+│   │   ├── adapters
+│   │   │   ├── grpc
+│   │   │   │   └── stock_grpc.go
+│   │   │   └── order_inmem_repository.go
+│   │   ├── app
+│   │   │   ├── app.go
+│   │   │   ├── command
+│   │   │   │   ├── create_order.go
+│   │   │   │   └── update_order.go
+│   │   │   └── query
+│   │   │       ├── get_customer_order.go
+│   │   │       └── service.go
+│   │   ├── domain
+│   │   │   └── order
+│   │   │       ├── order.go
+│   │   │       └── repository.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── http.go
+│   │   ├── main.go
+│   │   ├── ports
+│   │   │   ├── grpc.go
+│   │   │   ├── openapi_api.gen.go
+│   │   │   └── openapi_types.gen.go
+│   │   ├── service
+│   │   │   └── application.go
+│   │   └── tmp
+│   │       ├── build-errors.log
+│   │       └── main
+│   ├── payment
+│   │   └── go.mod
+│   └── stock
+│       ├── adapters
+│       │   └── stock_inmem_repository.go
+│       ├── app
+│       │   └── app.go
+│       ├── domain
+│       │   └── stock
+│       │       └── repository.go
+│       ├── go.mod
+│       ├── go.sum
+│       ├── main.go
+│       ├── ports
+│       │   └── grpc.go
+│       ├── service
+│       │   └── application.go
+│       └── tmp
+│           ├── build-errors.log
+│           └── main
+├── scripts
+│   ├── genopenapi.sh
+│   ├── genproto.sh
+│   └── lib.sh
+├── structure.txt
+└── tmp
+    └── build-errors.log
+
+39 directories, 58 files
