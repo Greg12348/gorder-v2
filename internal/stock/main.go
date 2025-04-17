@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"github.com/Greg12348/gorder-v2/common/config"
+	"github.com/Greg12348/gorder-v2/common/discovery"
 	"github.com/Greg12348/gorder-v2/common/genproto/stockpb"
+	"github.com/Greg12348/gorder-v2/common/logging"
 	"github.com/Greg12348/gorder-v2/common/server"
 	"github.com/Greg12348/gorder-v2/stock/ports"
 	"github.com/Greg12348/gorder-v2/stock/service"
@@ -13,6 +15,7 @@ import (
 )
 
 func init() {
+	logging.Init()
 	if err := config.NewViperConfig(); err != nil {
 		logrus.Fatal(err)
 	}
@@ -26,6 +29,15 @@ func main() {
 	defer cancel()
 
 	application := service.NewApplication(ctx)
+
+	deregisterFunc, err := discovery.RegisterToConsul(ctx, serviceName)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer func() {
+		_ = deregisterFunc()
+	}()
+
 	switch serverType {
 	case "grpc":
 		server.RunGRPCServer(serviceName, func(server *grpc.Server) {
