@@ -16,13 +16,13 @@ type MemoryOrderRepository struct {
 
 func NewMemoryOrderRepository() *MemoryOrderRepository {
 	s := make([]*domain.Order, 0)
-	s = append(s, &domain.Order{
-		ID:          "fake-ID",
-		CustomerID:  "fake-Customer-id",
-		Status:      "fake-status",
-		PaymentLink: "fake-payment-link",
-		Items:       nil,
-	})
+	//s = append(s, &domain.Order{
+	//	ID:          "fake-ID",
+	//	CustomerID:  "fake-Customer-id",
+	//	Status:      "fake-status",
+	//	PaymentLink: "fake-payment-link",
+	//	Items:       nil,
+	//})
 	return &MemoryOrderRepository{
 		lock:  &sync.RWMutex{},
 		store: s,
@@ -55,7 +55,7 @@ func (m *MemoryOrderRepository) Get(_ context.Context, id, customerID string) (*
 		logrus.Infof("o.ID %v", o.ID)
 		logrus.Infof("customerID %v", id)
 		if o.ID == id && o.CustomerID == customerID {
-			logrus.Debug("memory_order_repo_get || found || id=%s || res=%+v", id, customerID, *o)
+			logrus.Infof("memory_order_repo_get || found || id=%s || customerID=%s || order=%+v", id, customerID, *o)
 			return o, nil
 		}
 	}
@@ -66,10 +66,13 @@ func (m *MemoryOrderRepository) Update(ctx context.Context, order *domain.Order,
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	found := false
+	defer func() {
+		logrus.Infof("memory_order_repo || orderID=%s, found=%v", order.ID, found)
+	}()
 	for i, o := range m.store {
 		if o.ID == order.ID && o.CustomerID == order.CustomerID {
 			found = true
-			updateOrder, err := updateFn(ctx, o)
+			updateOrder, err := updateFn(ctx, order)
 			if err != nil {
 				return err
 			}

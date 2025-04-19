@@ -5,8 +5,11 @@ import (
 	"github.com/Greg12348/gorder-v2/common/config"
 	"github.com/Greg12348/gorder-v2/common/logging"
 	"github.com/Greg12348/gorder-v2/common/server"
+	"github.com/Greg12348/gorder-v2/payment/infrastructure/consumer"
+	"github.com/Greg12348/gorder-v2/payment/service"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"golang.org/x/net/context"
 )
 
 func init() {
@@ -17,7 +20,13 @@ func init() {
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	serverType := viper.GetString("payment.server-to-run")
+
+	application, cleanup := service.NewApplication(ctx)
+	defer cleanup()
+
 	ch, closeCh := broker.Connect(
 		viper.GetString("rabbitmq.user"),
 		viper.GetString("rabbitmq.password"),
@@ -28,6 +37,8 @@ func main() {
 		_ = closeCh()
 		_ = ch.Close()
 	}()
+
+	go consumer.NewConsumer(application).Listen(ch)
 
 	paymentHandler := NewPaymentHandler()
 	switch serverType {
